@@ -54,6 +54,10 @@ namespace Nop.Web.Areas.Admin.Models.Settings
         public bool ShowFreeShippingNotification { get; set; }
         public bool ShowFreeShippingNotification_OverrideForStore { get; set; }
 
+        [NopResourceDisplayName("Admin.Configuration.Settings.Catalog.ShowShortDescriptionOnCatalogPages")]
+        public bool ShowShortDescriptionOnCatalogPages { get; set; }
+        public bool ShowShortDescriptionOnCatalogPages_OverrideForStore { get; set; }
+
         [NopResourceDisplayName("Admin.Configuration.Settings.Catalog.AllowProductSorting")]
         public bool AllowProductSorting { get; set; }
         public bool AllowProductSorting_OverrideForStore { get; set; }
@@ -383,6 +387,10 @@ namespace Nop.Web.Areas.Admin.Models.Settings
         public bool EnableSpecificationAttributeFiltering { get; set; }
         public bool EnableSpecificationAttributeFiltering_OverrideForStore { get; set; }
 
+        [NopResourceDisplayName("Admin.Configuration.Settings.Catalog.DisplayFromPrices")]
+        public bool DisplayFromPrices { get; set; }
+        public bool DisplayFromPrices_OverrideForStore { get; set; }
+
         public string PrimaryStoreCurrencyCode { get; set; }
 
         [NopResourceDisplayName("Admin.Configuration.Settings.Catalog.AllowCustomersToSearchWithManufacturerName")]
@@ -392,6 +400,15 @@ namespace Nop.Web.Areas.Admin.Models.Settings
         [NopResourceDisplayName("Admin.Configuration.Settings.Catalog.AllowCustomersToSearchWithCategoryName")]
         public bool AllowCustomersToSearchWithCategoryName { get; set; }
         public bool AllowCustomersToSearchWithCategoryName_OverrideForStore { get; set; }
+
+        [NopResourceDisplayName("Admin.Configuration.Settings.Catalog.DisplayAllPicturesOnCatalogPages")]
+        public bool DisplayAllPicturesOnCatalogPages { get; set; }
+        public bool DisplayAllPicturesOnCatalogPages_OverrideForStore { get; set; }
+
+        [NopResourceDisplayName("Admin.Configuration.Settings.Catalog.ProductUrlStructureType")]
+        public int ProductUrlStructureTypeId { get; set; }
+        public bool ProductUrlStructureTypeId_OverrideForStore { get; set; }
+        public SelectList ProductUrlStructureTypes { get; set; }
 
         #endregion
     }

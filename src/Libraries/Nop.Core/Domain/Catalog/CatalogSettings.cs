@@ -56,6 +56,11 @@ namespace Nop.Core.Domain.Catalog
         public bool ShowFreeShippingNotification { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether short description should be displayed in product box
+        /// </summary>
+        public bool ShowShortDescriptionOnCatalogPages { get; set; }
+
+        /// <summary>
         /// Gets or sets a value indicating whether product sorting is enabled
         /// </summary>
         public bool AllowProductSorting { get; set; }
@@ -546,6 +551,11 @@ namespace Nop.Core.Domain.Catalog
         public bool EnableSpecificationAttributeFiltering { get; set; }
 
         /// <summary>
+        /// Get or set a value indicating whether the "From" prices (based on price adjustments of combinations and attributes) are displayed on catalog pages
+        /// </summary>
+        public bool DisplayFromPrices { get; set; }
+
+        /// <summary>
         /// Gets or sets the attribute value display type when out of stock
         /// </summary>
         public AttributeValueOutOfStockDisplayType AttributeValueOutOfStockDisplayType { get; set; }
@@ -559,5 +569,16 @@ namespace Nop.Core.Domain.Catalog
         /// Gets or sets a value indicating whether customer can search with category name
         /// </summary>
         public bool AllowCustomersToSearchWithCategoryName { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether all pictures will be displayed on catalog pages
+        /// </summary>
+        public bool DisplayAllPicturesOnCatalogPages { get; set; }
+
+        /// <summary>
+        /// Gets or sets the identifier of product URL structure type (e.g. '/category-seo-name/product-seo-name' or '/product-seo-name')
+        /// </summary>
+        /// <remarks>We have ProductUrlStructureType enum, but we use int value here so that it can be overridden in third-party plugins</remarks>
+        public int ProductUrlStructureTypeId { get; set; }
     }
 }

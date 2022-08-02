@@ -426,6 +426,16 @@ namespace Nop.Services.Catalog
         /// </returns>
         Task<bool> HasAnyRecurringProductAsync(int[] productIds);
 
+        /// <summary>
+        /// Returns a list of sku of not existing products
+        /// </summary>
+        /// <param name="productSku">The sku of the products to check</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation
+        /// The task result contains the list of sku not existing products
+        /// </returns>
+        Task<string[]> GetNotExistingProductsAsync(string[] productSku);
+
         #endregion
 
         #region Inventory management methods
@@ -706,6 +716,51 @@ namespace Nop.Services.Catalog
         /// </returns>
         Task<IPagedList<Product>> GetProductsWithAppliedDiscountAsync(int? discountId = null,
             bool showHidden = false, int pageIndex = 0, int pageSize = int.MaxValue);
+
+        #endregion
+
+        #region Product videos
+
+        /// <summary>
+        /// Deletes a product video
+        /// </summary>
+        /// <param name="productVideo">Product video</param>
+        /// <returns>A task that represents the asynchronous operation</returns>
+        Task DeleteProductVideoAsync(ProductVideo productVideo);
+
+        /// <summary>
+        /// Gets a product videos by product identifier
+        /// </summary>
+        /// <param name="productId">The product identifier</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation
+        /// The task result contains the product videos
+        /// </returns>
+        Task<IList<ProductVideo>> GetProductVideosByProductIdAsync(int productId);
+
+        /// <summary>
+        /// Gets a product video
+        /// </summary>
+        /// <param name="productPictureId">Product video identifier</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation
+        /// The task result contains the product video
+        /// </returns>
+        Task<ProductVideo> GetProductVideoByIdAsync(int productVideoId);
+
+        /// <summary>
+        /// Inserts a product video
+        /// </summary>
+        /// <param name="productVideo">Product picture</param>
+        /// <returns>A task that represents the asynchronous operation</returns>
+        Task InsertProductVideoAsync(ProductVideo productVideo);
+
+        /// <summary>
+        /// Updates a product video
+        /// </summary>
+        /// <param name="productVideo">Product video</param>
+        /// <returns>A task that represents the asynchronous operation</returns>
+        Task UpdateProductVideoAsync(ProductVideo productVideo);
 
         #endregion
 

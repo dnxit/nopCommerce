@@ -264,24 +264,34 @@ namespace Nop.Services.Orders
                     continue;
 
                 //prepare warning message
+                var url = urlHelper.RouteUrl(nameof(Product), new { SeName = await _urlRecordService.GetSeNameAsync(requiredProduct) });
                 var requiredProductName = WebUtility.HtmlEncode(await _localizationService.GetLocalizedAsync(requiredProduct, x => x.Name));
                 var requiredProductWarning = _catalogSettings.UseLinksInRequiredProductWarnings
-                    ? string.Format(warningLocale, $"<a href=\"{urlHelper.RouteUrl(nameof(Product), new { SeName = await _urlRecordService.GetSeNameAsync(requiredProduct) })}\">{requiredProductName}</a>", requiredProductRequiredQuantity)
+                    ? string.Format(warningLocale, $"<a href=\"{url}\">{requiredProductName}</a>", requiredProductRequiredQuantity)
                     : string.Format(warningLocale, requiredProductName, requiredProductRequiredQuantity);
 
                 //add to cart (if possible)
                 if (addRequiredProducts && product.AutomaticallyAddRequiredProducts)
                 {
                     //do not add required products to prevent circular references
-                    var addToCartWarnings = await AddToCartAsync(customer, requiredProduct, shoppingCartType, storeId,
-                        quantity: quantityToAdd, addRequiredProducts: false);
+                    var addToCartWarnings = await GetShoppingCartItemWarningsAsync(
+                        customer: customer,
+                        product: requiredProduct,
+                        attributesXml: null,
+                        customerEnteredPrice: decimal.Zero,
+                        shoppingCartType: shoppingCartType,
+                        storeId: storeId,
+                        quantity: quantityToAdd,
+                        addRequiredProducts: true);
 
                     //don't display all specific errors only the generic one
                     if (addToCartWarnings.Any())
                         warnings.Add(requiredProductWarning);
                 }
                 else
+                {
                     warnings.Add(requiredProductWarning);
+                }
             }
 
             return warnings;
@@ -752,6 +762,7 @@ namespace Nop.Services.Orders
         /// <param name="attributesXml">Attributes in XML format</param>
         /// <param name="ignoreNonCombinableAttributes">A value indicating whether we should ignore non-combinable attributes</param>
         /// <param name="ignoreConditionMet">A value indicating whether we should ignore filtering by "is condition met" property</param>
+        /// <param name="ignoreBundledProducts">A value indicating whether we should ignore bundled (associated) products</param>
         /// <param name="shoppingCartItemId">Shopping cart identifier; pass 0 if it's a new item</param>
         /// <returns>
         /// A task that represents the asynchronous operation
@@ -763,7 +774,9 @@ namespace Nop.Services.Orders
             int quantity = 1,
             string attributesXml = "",
             bool ignoreNonCombinableAttributes = false,
-            bool ignoreConditionMet = false, int shoppingCartItemId = 0)
+            bool ignoreConditionMet = false,
+            bool ignoreBundledProducts = false,
+            int shoppingCartItemId = 0)
         {
             if (product == null)
                 throw new ArgumentNullException(nameof(product));
@@ -908,7 +921,7 @@ namespace Nop.Services.Orders
                 }
             }
 
-            if (warnings.Any())
+            if (warnings.Any() || ignoreBundledProducts)
                 return warnings;
 
             //validate bundled products
@@ -1101,7 +1114,7 @@ namespace Nop.Services.Orders
 
             //selected attributes
             if (getAttributesWarnings)
-                warnings.AddRange(await GetShoppingCartItemAttributeWarningsAsync(customer, shoppingCartType, product, quantity, attributesXml, false, false, shoppingCartItemId));
+                warnings.AddRange(await GetShoppingCartItemAttributeWarningsAsync(customer, shoppingCartType, product, quantity, attributesXml, false, false, false, shoppingCartItemId));
 
             //gift cards
             if (getGiftCardWarnings)
@@ -1558,6 +1571,11 @@ namespace Nop.Services.Orders
                 if (warnings.Any())
                     return warnings;
 
+                await addRequiredProductsToCartAsync();
+
+                if (warnings.Any())
+                    return warnings;
+
                 shoppingCartItem.AttributesXml = attributesXml;
                 shoppingCartItem.Quantity = newQuantity;
                 shoppingCartItem.UpdatedOnUtc = DateTime.UtcNow;
@@ -1571,6 +1589,11 @@ namespace Nop.Services.Orders
                     storeId, attributesXml, customerEnteredPrice,
                     rentalStartDate, rentalEndDate,
                     quantity, addRequiredProducts));
+
+                if (warnings.Any())
+                    return warnings;
+
+                await addRequiredProductsToCartAsync();
 
                 if (warnings.Any())
                     return warnings;
@@ -1623,6 +1646,43 @@ namespace Nop.Services.Orders
             }
 
             return warnings;
+
+            async Task addRequiredProductsToCartAsync()
+            {
+                //get these required products
+                var requiredProducts = await _productService.GetProductsByIdsAsync(_productService.ParseRequiredProductIds(product));
+                if (!requiredProducts.Any())
+                    return;
+
+                foreach (var requiredProduct in requiredProducts)
+                {
+                    var productsRequiringRequiredProduct = await GetProductsRequiringProductAsync(cart, requiredProduct);
+
+                    //get the required quantity of the required product
+                    var requiredProductRequiredQuantity = quantity +
+                        cart.Where(ci => productsRequiringRequiredProduct.Any(p => p.Id == ci.ProductId))
+                            .Where(item => item.Id != (shoppingCartItem?.Id ?? 0))
+                            .Sum(item => item.Quantity);
+
+                    //whether required product is already in the cart in the required quantity
+                    var quantityToAdd = requiredProductRequiredQuantity - (cart.FirstOrDefault(item => item.ProductId == requiredProduct.Id)?.Quantity ?? 0);
+                    if (quantityToAdd <= 0)
+                        continue;
+
+                    if (addRequiredProducts && product.AutomaticallyAddRequiredProducts)
+                    {
+                        //do not add required products to prevent circular references
+                        var addToCartWarnings = await AddToCartAsync(customer, requiredProduct, shoppingCartType, storeId,
+                            quantity: quantityToAdd, addRequiredProducts: requiredProduct.AutomaticallyAddRequiredProducts);
+
+                        if (addToCartWarnings.Any())
+                        {
+                            warnings.AddRange(addToCartWarnings);
+                            return;
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>
