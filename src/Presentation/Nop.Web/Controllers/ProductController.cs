@@ -306,7 +306,7 @@ namespace Nop.Web.Controllers
         }
 
         //ignore SEO friendly URLs checks
-        [CheckLanguageSeoCode(true)]
+        [CheckLanguageSeoCode(ignore: true)]
         public virtual async Task<IActionResult> GetProductCombinations(int productId)
         {
             var product = await _productService.GetProductByIdAsync(productId);
@@ -425,7 +425,7 @@ namespace Nop.Web.Controllers
 
                 //notify store owner
                 if (_catalogSettings.NotifyStoreOwnerAboutNewProductReviews)
-                    await _workflowMessageService.SendProductReviewNotificationMessageAsync(productReview, _localizationSettings.DefaultAdminLanguageId);
+                    await _workflowMessageService.SendProductReviewStoreOwnerNotificationMessageAsync(productReview, _localizationSettings.DefaultAdminLanguageId);
 
                 //activity log
                 await _customerActivityService.InsertActivityAsync("PublicStore.AddProductReview",
@@ -636,9 +636,12 @@ namespace Nop.Web.Controllers
             .Where(p => _productService.ProductIsAvailable(p)).ToListAsync();
 
             //prepare model
-            (await _productModelFactory.PrepareProductOverviewModelsAsync(products, prepareSpecificationAttributes: true))
-                .ToList()
-                .ForEach(model.Products.Add);
+            var poModels = (await _productModelFactory.PrepareProductOverviewModelsAsync(products, prepareSpecificationAttributes: true))
+                .ToList();
+            foreach(var poModel in poModels)
+            {
+                model.Products.Add(poModel);
+            }
 
             return View(model);
         }

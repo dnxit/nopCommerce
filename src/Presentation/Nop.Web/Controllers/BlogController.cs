@@ -120,7 +120,7 @@ namespace Nop.Web.Controllers
             return View("List", model);
         }
 
-        [CheckLanguageSeoCode(true)]
+        [CheckLanguageSeoCode(ignore: true)]
         public virtual async Task<IActionResult> ListRss(int languageId)
         {
             var store = await _storeContext.GetCurrentStoreAsync();
@@ -215,7 +215,7 @@ namespace Nop.Web.Controllers
 
                 //notify a store owner
                 if (_blogSettings.NotifyAboutNewBlogComments)
-                    await _workflowMessageService.SendBlogCommentNotificationMessageAsync(comment, _localizationSettings.DefaultAdminLanguageId);
+                    await _workflowMessageService.SendBlogCommentStoreOwnerNotificationMessageAsync(comment, _localizationSettings.DefaultAdminLanguageId);
 
                 //activity log
                 await _customerActivityService.InsertActivityAsync("PublicStore.AddBlogComment",
@@ -237,8 +237,8 @@ namespace Nop.Web.Controllers
             }
 
             //If we got this far, something failed, redisplay form
+            RouteData.Values["action"] = "BlogPost";
             await _blogModelFactory.PrepareBlogPostModelAsync(model, blogPost, true);
-
             return View(model);
         }
 

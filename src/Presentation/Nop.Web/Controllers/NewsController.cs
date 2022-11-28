@@ -102,7 +102,7 @@ namespace Nop.Web.Controllers
             return View(model);
         }
 
-        [CheckLanguageSeoCode(true)]
+        [CheckLanguageSeoCode(ignore: true)]
         public virtual async Task<IActionResult> ListRss(int languageId)
         {
             var store = await _storeContext.GetCurrentStoreAsync();
@@ -201,7 +201,7 @@ namespace Nop.Web.Controllers
 
                 //notify a store owner;
                 if (_newsSettings.NotifyAboutNewNewsComments)
-                    await _workflowMessageService.SendNewsCommentNotificationMessageAsync(comment, _localizationSettings.DefaultAdminLanguageId);
+                    await _workflowMessageService.SendNewsCommentStoreOwnerNotificationMessageAsync(comment, _localizationSettings.DefaultAdminLanguageId);
 
                 //activity log
                 await _customerActivityService.InsertActivityAsync("PublicStore.AddNewsComment",
@@ -223,6 +223,7 @@ namespace Nop.Web.Controllers
             }
 
             //If we got this far, something failed, redisplay form
+            RouteData.Values["action"] = "NewsItem";
             model = await _newsModelFactory.PrepareNewsItemModelAsync(model, newsItem, true);
             return View(model);
         }
